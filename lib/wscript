@@ -1,0 +1,11 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+
+def build(bld):
+  bld(features = 'cxx cxxstlib',
+      source = 'Lexer.l AlternativesScanner.cpp Parser.yc AlternativesDriver.cpp',
+      target = 'lexer',
+      includes = '.',
+      export_includes = '.',
+      use='project-includes')

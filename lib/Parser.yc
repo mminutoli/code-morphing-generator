@@ -1,0 +1,102 @@
+%skeleton "lalr1.cc"
+%require "2.5"
+%language "c++"
+%debug
+%defines
+%define namespace "IA"
+%define parser_class_name "AlternativesParser"
+
+
+%code requires {
+
+#include <string>
+#include <iostream>
+
+namespace IA {
+  class AlternativesScanner;
+  class AlternativesDriver;
+}
+
+}
+
+%lex-param { AlternativesScanner & scanner }
+%parse-param { AlternativesScanner & scanner }
+
+%lex-param { AltenativesDriver & driver }
+%parse-param { AlternativesDriver & driver }
+
+%code {
+
+#include <AlternativesDriver.hpp>
+
+static int yylex(IA::AlternativesParser::semantic_type * yylval,
+                 IA::AlternativesScanner & scanner,
+                 IA::AlternativesDriver & driver);
+
+}
+
+%start alternatives
+
+%union {
+  std::string * sval;
+}
+
+
+%token  END 0
+%token  LBRACE RBRACE LPAR RPAR LSQUARE RSQUARE
+%token  <sval> OP BINOP
+%token  <sval> REG
+%token  ASSIGN
+
+
+%%
+
+alternatives : alternative_record END
+             | alternative_record alternatives
+
+alternative_record : instruction_replaced LBRACE instruction_alternatives RBRACE
+{
+  driver.buildAlternativesSpecialization();
+  driver.addRegRegAlternative();
+}
+
+instruction_replaced : REG ASSIGN BINOP REG REG
+{
+  driver.currentInstruction(*$3);
+  driver.setInputs(*$4, *$5);
+}
+
+instruction_alternatives : instruction_alternative
+                         | instruction_alternative instruction_alternatives
+
+instruction_alternative : LSQUARE { driver.openAlternativeBuilder(); }
+                          instruction_list
+                          RSQUARE { driver.closeAlternativeBuilder(); }
+
+instruction_list : instruction
+                 | instruction instruction_list
+
+instruction : REG ASSIGN BINOP REG REG
+{
+  driver.emitInstruction(*$1, *$3, *$4, *$5);
+}
+            | REG ASSIGN OP REG
+{
+  driver.emitInstruction(*$1, *$3, *$4);
+}
+
+%%
+
+void IA::AlternativesParser::error(const IA::AlternativesParser::location_type &l,
+                                   const std::string &err_message)
+{
+  std::cerr << "Error: " << err_message << "\n";
+}
+
+#include <AlternativesScanner.hpp>
+static int yylex(IA::AlternativesParser::semantic_type * yylval,
+                 IA::AlternativesScanner & scanner,
+                 IA::AlternativesDriver & driver)
+{
+  return scanner.yylex(yylval);
+}
