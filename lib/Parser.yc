@@ -44,39 +44,58 @@ static int yylex(IA::AlternativesParser::semantic_type * yylval,
 
 %token  END 0
 %token  LBRACE RBRACE LPAR RPAR LSQUARE RSQUARE
-%token  <sval> OP BINOP
-%token  <sval> REG
+%token  <sval> OP
+%token  <sval> BINOP
+%token  <sval> REG CONST RAND
 %token  ASSIGN
 
+%type <sval> argument
+%type <sval> expression
 
 %%
 
 alternatives : alternative_record END
+{
+  driver.buildAlternativesSpecialization();
+}
              | alternative_record alternatives
 
 alternative_record : instruction_replaced LBRACE instruction_alternatives RBRACE
 {
-  driver.buildAlternativesSpecialization();
-  driver.addRegRegAlternative();
+  driver.addAlternative();
 }
 
 instruction_replaced : REG ASSIGN BINOP REG REG
 {
   driver.currentInstruction(*$3);
+  driver.regReg();
   driver.setInputs(*$4, *$5);
 }
+                     | REG ASSIGN BINOP REG CONST
+{
+  driver.currentInstruction(*$3);
+  driver.regConst();
+  driver.setInputs(*$4, *$5);
+}
+
 
 instruction_alternatives : instruction_alternative
                          | instruction_alternative instruction_alternatives
 
-instruction_alternative : LSQUARE { driver.openAlternativeBuilder(); }
+instruction_alternative : LSQUARE
+{
+  if (driver.isRegReg())
+    driver.openRegRegAlternativeBuilder();
+  else
+    driver.openRegConstAlternativeBuilder();
+}
                           instruction_list
                           RSQUARE { driver.closeAlternativeBuilder(); }
 
 instruction_list : instruction
                  | instruction instruction_list
 
-instruction : REG ASSIGN BINOP REG REG
+instruction : REG ASSIGN BINOP argument argument
 {
   driver.emitInstruction(*$1, *$3, *$4, *$5);
 }
@@ -84,6 +103,14 @@ instruction : REG ASSIGN BINOP REG REG
 {
   driver.emitInstruction(*$1, *$3, *$4);
 }
+
+argument : REG
+         | CONST
+         | RAND
+         | LPAR expression RPAR { $$ = $2; }
+
+expression : BINOP argument argument
+             OP argument
 
 %%
 

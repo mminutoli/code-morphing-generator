@@ -6,13 +6,15 @@ int main(int argc, char *argv[])
 {
   if (argc != 2) return -1;
 
-  std::ofstream a("a.def");
-  std::ofstream b("b.def");
-  std::ofstream c("c.def");
-  std::ofstream d("d.def");
-  std::ofstream e("e.def");
+  std::ofstream BuildAlternatives("BuildAlternatives.def");
+  std::ofstream InstructionDecl("InstructionDecl.def");
+  std::ofstream InstructionTable("InstructionTable.def");
+  std::ofstream HandleInstruction("HandleInstruction.def");
+  std::ofstream ReverseMapping("ReverseMapping.def");
 
-  IA::AlternativesDriver driver(a, b, c, d, e);
+  IA::AlternativesDriver driver(BuildAlternatives, InstructionDecl,
+                                InstructionTable, HandleInstruction,
+                                ReverseMapping);
   driver.parse(argv[1]);
   driver.buildTMPTable();
   return 0;

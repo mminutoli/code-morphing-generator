@@ -20,11 +20,15 @@ typedef IA::AlternativesParser::token token;
 
 DIGIT        ([1-9][0-9]*)|0
 REGISTER     r{DIGIT}
+CONSTANT     const{DIGIT}
+RANDOM       rand{DIGIT}
 
 %%
 
 [ \r\n\t\f\v]+ { /* Ignore white spaces */ }
 {REGISTER}     TOKEN(token::REG);
+{CONSTANT}     TOKEN(token::CONST);
+{RANDOM}       TOKEN(token::RAND);
 "{"            TOKEN(token::LBRACE);
 "}"            TOKEN(token::RBRACE);
 "["            TOKEN(token::LSQUARE);

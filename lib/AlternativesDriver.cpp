@@ -20,7 +20,8 @@ AlternativesDriver::AlternativesDriver(
       osHandleInstructionTable(_osHandleInstructionTable),
       osReverseMapTable(_osReverseMapTable),
       seqNumber(0), currentInst(""), in1(""), in2(""),
-      regRegAlternatives()
+      regreg(false),
+      alternatives()
 {}
 
 
@@ -73,11 +74,24 @@ AlternativesDriver::emitInstruction(std::string const & r3,
         << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
   } else if (i == "not") {
     osBuildAlternatives
+        << "Constant * allOnes" << r1 << ";\n"
+        << "if (isa<VectorType>(" << r1 << "->getType())) {\n"
+        << "VectorType * " << r1 << "type = VectorType::getInteger(cast<VectorType>("
+        << r1 << "->getType()));\n"
+        << "unsigned bitNum = " << r1 << "type->getBitWidth() / "
+        << r1 << "type->getNumElements();\n"
+        << "IntegerType * " << r1 << "ElemType = IntegerType::get("
+        << r1 << "->getContext(), bitNum);\n"
+        << "Constant * elem = ConstantInt::get(" << r1 << "ElemType, "
+        << r1 << "ElemType->getMask());\n"
+        "allOnes" << r1 << " = ConstantVector::getSplat("
+        << r1 << "type->getNumElements(), elem);\n"
+        << "} else {\n"
         << "IntegerType * "<< r1 << "type = IntegerType::get("
         << r1 << "->getContext(),"
         << r1 << "->getType()->getIntegerBitWidth());\n"
-        << "Constant * allOnes"<< r1 << " = ConstantInt::get(" << r1 << "type,"
-        << r1 << "type->getMask());\n"
+        << "allOnes"<< r1 << " = ConstantInt::get(" << r1 << "type,"
+        << r1 << "type->getMask());\n}\n"
         << "BinaryOperator * " << r3
         << " = BinaryOperator::Create(Instruction::Xor, "
         << r1 << ", allOnes" << r1 << ", \"\", BB);"
@@ -89,10 +103,21 @@ AlternativesDriver::emitInstruction(std::string const & r3,
 
 
 void
-AlternativesDriver::openAlternativeBuilder()
+AlternativesDriver::openRegRegAlternativeBuilder()
 {
   osBuildAlternatives
       << "BasicBlock * build" << currentInst << "RegReg"
+      << ++seqNumber << "(Value * " << in1 << ", Value * "<< in2 << ") {\n"
+      << "BasicBlock * BB = BasicBlock::Create(" << in1 << "->getContext());"
+      << std::endl;
+}
+
+
+void
+AlternativesDriver::openRegConstAlternativeBuilder()
+{
+  osBuildAlternatives
+      << "BasicBlock * build" << currentInst << "RegConst"
       << ++seqNumber << "(Value * " << in1 << ", Value * "<< in2 << ") {\n"
       << "BasicBlock * BB = BasicBlock::Create(" << in1 << "->getContext());"
       << std::endl;
@@ -117,26 +142,51 @@ AlternativesDriver::setInputs(std::string & i1, std::string & i2)
 void
 AlternativesDriver::buildAlternativesSpecialization()
 {
-  osBuildAlternatives
-      << "template <>\n"
-      << "std::vector<llvm::BasicBlock *> buildAlternatives<"
-      << currentInst << ">(llvm::Instruction & I)"
-      "{\nstd::vector<BasicBlock *> alternatives;\n\n"
-      "Value * firstOperand = I.getOperand(0);\n"
-      "Value * secondOperand = I.getOperand(1);\n"
-      << "BasicBlock * BB;\n"
-      << std::endl;
-
-  for (int i = 1; i <= seqNumber; ++i)
+  typedef std::map<std::string, std::pair<int, int> >::const_iterator const_iterator;
+  for (const_iterator itr = alternatives.begin(),
+                      end = alternatives.end();
+       itr != end; ++itr)
   {
     osBuildAlternatives
-        << "BB = build" << currentInst << "RegReg" << i
-        << "(firstOperand, secondOperand);\n"
-        << "alternatives.push_back(BB);\n"
+        << "template <>\n"
+        << "std::vector<llvm::BasicBlock *> buildAlternatives<"
+        << itr->first << ">(llvm::Instruction & I)"
+        "{\nstd::vector<BasicBlock *> alternatives;\n\n"
+        "Value * firstOperand = I.getOperand(0);\n"
+        "Value * secondOperand = I.getOperand(1);\n"
+        << "BasicBlock * BB;\n"
         << std::endl;
-  }
 
-  osBuildAlternatives << "return alternatives;\n}\n" << std::endl;     
+    osBuildAlternatives
+        << "if (isa<Constant>(firstOperand)) {\n";
+    for (int i = 1; i <= itr->second.second; ++i)
+    {
+      osBuildAlternatives
+          << "BB = build" << itr->first << "RegConst" << i
+          << "(secondOperand, firstOperand);\n"
+          << "alternatives.push_back(BB);\n";
+    }
+    osBuildAlternatives
+        << "} else if (isa<Constant>(secondOperand)) {\n";
+    for (int i = 1; i <= itr->second.second; ++i)
+    {
+      osBuildAlternatives
+          << "BB = build" << itr->first << "RegConst" << i
+          << "(secondOperand, firstOperand);\n"
+          << "alternatives.push_back(BB);\n";
+    }
+    osBuildAlternatives
+        << "} else {\n";
+    for (int i = 1; i <= itr->second.first; ++i)
+    {
+      osBuildAlternatives
+          << "BB = build" << itr->first << "RegReg" << i
+          << "(firstOperand, secondOperand);\n"
+          << "alternatives.push_back(BB);\n";
+    }
+    osBuildAlternatives << "}" << std::endl;
+    osBuildAlternatives << "return alternatives;\n}\n" << std::endl;
+  }
 }
 
 
@@ -156,26 +206,33 @@ AlternativesDriver::currentInstruction(std::string const & i)
 
 
 void
-AlternativesDriver::addRegRegAlternative()
+AlternativesDriver::addAlternative()
 {
-  regRegAlternatives.push_back(std::make_pair(currentInst, seqNumber));
+  if (regreg)
+    alternatives[currentInst].first = seqNumber;
+  else
+    alternatives[currentInst].second = seqNumber;
 }
 
 
 void
 AlternativesDriver::buildTMPTable()
 {
-  typedef std::vector< std::pair<std::string, int> >::const_iterator const_iterator;
+  typedef std::map<std::string, std::pair<int, int> >::const_iterator const_iterator;
   int i = 0;
-  for (const_iterator itr = regRegAlternatives.begin(),
-                      end = regRegAlternatives.end();
+  for (const_iterator itr = alternatives.begin(),
+                      end = alternatives.end();
        itr != end; ++itr, ++i)
   {
     osEnumInstruction << itr->first << " = " << i << "," << std::endl;
 
     osSetAlternativeTable
         << "CMP_SET_ALTERNATIVE_NUMBER("
-        << itr->first << ", " << itr->second << ");"
+        << itr->first << ", " << itr->second.first << ", RegReg);"
+        << std::endl;
+    osSetAlternativeTable
+        << "CMP_SET_ALTERNATIVE_NUMBER("
+        << itr->first << ", " << itr->second.second << ", RegConst);"
         << std::endl;
 
     osHandleInstructionTable

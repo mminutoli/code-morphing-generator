@@ -5,7 +5,7 @@
 #include <Parser.tab.hh>
 
 #include <ostream>
-#include <vector>
+#include <map>
 
 
 namespace IA {
@@ -28,7 +28,8 @@ class AlternativesDriver
                        std::string const & r1,
                        std::string const & r2 = "");
 
-  void openAlternativeBuilder();
+  void openRegRegAlternativeBuilder();
+  void openRegConstAlternativeBuilder();
   void closeAlternativeBuilder();
 
   void setInputs(std::string & i1, std::string & i2);
@@ -37,7 +38,11 @@ class AlternativesDriver
 
   void currentInstruction(std::string const & i);
 
-  void addRegRegAlternative();
+  bool isRegReg() { return regreg; }
+  void regReg() { regreg = true; }
+  void regConst() { regreg = false; }
+
+  void addAlternative();
 
   void buildTMPTable();
 
@@ -50,23 +55,15 @@ class AlternativesDriver
   std::ostream & osSetAlternativeTable;
   std::ostream & osHandleInstructionTable;
   std::ostream & osReverseMapTable;
-  
 
   std::string currentInst;
   std::string in1;
   std::string in2;
   int seqNumber;
-  std::vector<std::pair<std::string, int> > regRegAlternatives;
+  bool regreg;
+  std::map<std::string, std::pair<int, int> > alternatives;
 };
 
 }
 
 #endif /* _ALTERNATIVESDRIVER_H_ */
-
-
-
-
-
-
-
-
