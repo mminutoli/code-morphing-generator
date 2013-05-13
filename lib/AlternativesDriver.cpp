@@ -72,6 +72,31 @@ AlternativesDriver::emitInstruction(std::string const & r3,
         << "BinaryOperator * "
         << r3 << " = BinaryOperator::Create(Instruction::Xor, "
         << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
+  } else if (i == "lsh") {
+    osBuildAlternatives
+        << "BinaryOperator * "
+        << r3 << " = BinaryOperator::Create(Instruction::LShr, "
+        << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
+  } else if (i == "rsh") {
+    osBuildAlternatives
+        << "BinaryOperator * "
+        << r3 << " = BinaryOperator::Create(Instruction::Shr, "
+        << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
+  } else if (i == "add") {
+    osBuildAlternatives
+        << "BinaryOperator * "
+        << r3 << " = BinaryOperator::Create(Instruction::Add, "
+        << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
+  } else if (i == "sub") {
+    osBuildAlternatives
+        << "BinaryOperator * "
+        << r3 << " = BinaryOperator::Create(Instruction::Sub, "
+        << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
+  } else if (i == "mul") {
+    osBuildAlternatives
+        << "BinaryOperator * "
+        << r3 << " = BinaryOperator::Create(Instruction::Mul, "
+        << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
   } else if (i == "not") {
     osBuildAlternatives
         << "Constant * allOnes" << r1 << ";\n"
@@ -96,6 +121,56 @@ AlternativesDriver::emitInstruction(std::string const & r3,
         << " = BinaryOperator::Create(Instruction::Xor, "
         << r1 << ", allOnes" << r1 << ", \"\", BB);"
         << std::endl;
+  } else if (i == "neg") {
+    osBuildAlternatives
+        << "Constant * allOnes" << r1 << ";\n"
+        << "if (isa<VectorType>(" << r1 << "->getType())) {\n"
+        << "VectorType * " << r1 << "type = VectorType::getInteger(cast<VectorType>("
+        << r1 << "->getType()));\n"
+        << "unsigned bitNum = " << r1 << "type->getBitWidth() / "
+        << r1 << "type->getNumElements();\n"
+        << "IntegerType * " << r1 << "ElemType = IntegerType::get("
+        << r1 << "->getContext(), bitNum);\n"
+        << "Constant * elem = ConstantInt::get(" << r1 << "ElemType, "
+        << r1 << "ElemType->getMask());\n"
+        "allOnes" << r1 << " = ConstantVector::getSplat("
+        << r1 << "type->getNumElements(), elem);\n"
+        << "} else {\n"
+        << "IntegerType * "<< r1 << "type = IntegerType::get("
+        << r1 << "->getContext(),"
+        << r1 << "->getType()->getIntegerBitWidth());\n"
+        << "allOnes"<< r1 << " = ConstantInt::get(" << r1 << "type,"
+        << r1 << "type->getMask());\n}\n"
+        << "BinaryOperator * " << r1 << "xor"
+        << " = BinaryOperator::Create(Instruction::Xor, "
+        << r1 << ", allOnes" << r1 << ", \"\", BB);"
+        << "Constant * one;\n"
+        << "if (isa<VectorType>(" << r1 << "->getType())) {\n"
+        << "VectorType * " << r1 << "type = VectorType::getInteger(cast<VectorType>("
+        << r1 << "->getType()));\n"
+        << "unsigned bitNum = " << r1 << "type->getBitWidth() / "
+        << r1 << "type->getNumElements();\n"
+        << "IntegerType * " << r1 << "ElemType = IntegerType::get("
+        << r1 << "->getContext(), bitNum);\n"
+        << "Constant * elem = ConstantInt::get(" << r1 << "ElemType, 1);\n"
+        "one" << r1 << " = ConstantVector::getSplat("
+        << r1 << "type->getNumElements(), elem);\n"
+        << "} else {\n"
+        << "IntegerType * "<< r1 << "type = IntegerType::get("
+        << r1 << "->getContext(),"
+        << r1 << "->getType()->getIntegerBitWidth());\n"
+        << "one"<< r1 << " = ConstantInt::get(" << r1 << "type, 1);\n}\n"
+        << std::endl;
+  } else if (i == "load") {
+    osBuildAlternatives
+        << "LoadInst * "
+        << r3 << " = new LoadInst("
+        << r1 << ", \"\", BB);" << std::endl;
+  } else if (i == "store") {
+    osBuildAlternatives
+        << "StoreInst * "
+        << r3 << " = new StoreInst("
+        << r1 << ", " << r2 << ", \"\", BB);" << std::endl;
   } else {
     osBuildAlternatives << "Error.MissingInstruction;" << std::endl;
   }

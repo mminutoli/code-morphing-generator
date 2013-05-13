@@ -110,7 +110,7 @@ argument : REG
          | LPAR expression RPAR { $$ = $2; }
 
 expression : BINOP argument argument
-             OP argument
+           | OP argument
 
 %%
 

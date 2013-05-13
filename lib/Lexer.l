@@ -37,6 +37,7 @@ RANDOM       rand{DIGIT}
 ")"            TOKEN(token::RPAR);
 "="            TOKEN(token::ASSIGN);
 "not"          TOKEN(token::OP);
+"neg"          TOKEN(token::OP);
 "and"          TOKEN(token::BINOP);
 "or"           TOKEN(token::BINOP);
 "xor"          TOKEN(token::BINOP);
@@ -45,6 +46,6 @@ RANDOM       rand{DIGIT}
 "mul"          TOKEN(token::BINOP);
 "lsh"          TOKEN(token::BINOP);
 "rsh"          TOKEN(token::BINOP);
-"load"         TOKEN(token::BINOP);
+"load"         TOKEN(token::OP);
 "store"        TOKEN(token::BINOP);
 .              { }
