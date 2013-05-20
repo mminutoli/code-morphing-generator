@@ -1,0 +1,8 @@
+
+* Build instruction
+
+Simply run:
+
+#+BEGIN_SRC: shell
+    $ ./waf configure build
+#+END_SRS
