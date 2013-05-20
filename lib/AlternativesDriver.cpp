@@ -21,7 +21,8 @@ AlternativesDriver::AlternativesDriver(
       osReverseMapTable(_osReverseMapTable),
       seqNumber(0), currentInst(""), in1(""), in2(""),
       regreg(false),
-      alternatives()
+      alternatives(),
+      randoms()
 {}
 
 
@@ -203,6 +204,7 @@ void
 AlternativesDriver::closeAlternativeBuilder()
 {
   osBuildAlternatives << "return BB;\n}\n\n" << std::endl;
+  randoms.clear();
 }
 
 
@@ -319,5 +321,25 @@ AlternativesDriver::buildTMPTable()
         << "CHECK_INST("
         << itr->first << ");"
         << std::endl;
+  }
+}
+
+
+void
+AlternativesDriver::handleRandomArgs(std::string const & r)
+{
+  if (r.substr(0, 4) == "rand")
+  {
+    if (randoms.find(r) == randoms.end())
+    {
+      unsigned int result = std::rand();
+      randoms[r] = result;
+      osBuildAlternatives
+          << "IntegerType * "<< r << "type = IntegerType::get("
+          << "BB->getContext(), 32);\n"
+          << "ConstantInt * " << r << " = ConstantInt::get(" << r << "type, "
+          << result << ");\n"
+          << std::endl;
+    }
   }
 }

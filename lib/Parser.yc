@@ -106,7 +106,7 @@ instruction : REG ASSIGN BINOP argument argument
 
 argument : REG
          | CONST
-         | RAND
+         | RAND { driver.handleRandomArgs(*$1); }
          | LPAR expression RPAR { $$ = $2; }
 
 expression : BINOP argument argument

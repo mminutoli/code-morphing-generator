@@ -46,6 +46,8 @@ class AlternativesDriver
 
   void buildTMPTable();
 
+  void handleRandomArgs(std::string const & r);
+
  private:
   IA::AlternativesScanner * scanner;
   IA::AlternativesParser * parser;
@@ -62,6 +64,7 @@ class AlternativesDriver
   int seqNumber;
   bool regreg;
   std::map<std::string, std::pair<int, int> > alternatives;
+  std::map<std::string, unsigned int> randoms;
 };
 
 }
