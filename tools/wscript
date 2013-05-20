@@ -4,5 +4,5 @@
 def build(bld):
   bld(features = 'cxx cxxprogram',
       source = 'cpp-generator.cpp',
-      target = 'cpp-generator',
+      target = 'code-morphing-generator',
       use = 'lexer')

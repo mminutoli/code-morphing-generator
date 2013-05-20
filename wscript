@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 VERSION='0.0.1'
-APPNAME='cpp-generator'
+APPNAME='code-morphing-generator'
 
 
 top = '.'
