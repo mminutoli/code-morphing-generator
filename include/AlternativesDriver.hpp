@@ -46,7 +46,7 @@ class AlternativesDriver
 
   void buildTMPTable();
 
-  void handleRandomArgs(std::string const & r);
+  unsigned int handleRandomArgs(std::string const & r);
 
  private:
   IA::AlternativesScanner * scanner;

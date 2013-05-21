@@ -325,21 +325,21 @@ AlternativesDriver::buildTMPTable()
 }
 
 
-void
+unsigned int
 AlternativesDriver::handleRandomArgs(std::string const & r)
 {
-  if (r.substr(0, 4) == "rand")
+  if (randoms.find(r) == randoms.end())
   {
-    if (randoms.find(r) == randoms.end())
-    {
-      unsigned int result = std::rand();
-      randoms[r] = result;
-      osBuildAlternatives
-          << "IntegerType * "<< r << "type = IntegerType::get("
-          << "BB->getContext(), 32);\n"
-          << "ConstantInt * " << r << " = ConstantInt::get(" << r << "type, "
-          << result << ");\n"
-          << std::endl;
-    }
+    unsigned int result = std::rand();
+    randoms[r] = result;
+    osBuildAlternatives
+        << "IntegerType * "<< r << "type = IntegerType::get("
+        << "BB->getContext(), 32);\n"
+        << "ConstantInt * " << r << " = ConstantInt::get(" << r << "type, "
+        << result << ");\n"
+        << std::endl;
+    return result;
+  } else {
+    return randoms[r];
   }
 }
