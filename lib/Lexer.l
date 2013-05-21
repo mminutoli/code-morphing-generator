@@ -1,11 +1,13 @@
 %{
 #include <AlternativesScanner.hpp>
 
+#include <sstream>
 #include <string>
 
 typedef IA::AlternativesParser::token token;
 
 #define TOKEN(x)  yylval->sval = new std::string(yytext); return x
+#define NUMBER(x) std::istringstream(yytext) >> yylval->eval; return x
 
 #define yyterminate() return(token::END)
 
@@ -48,4 +50,14 @@ RANDOM       rand{DIGIT}
 "rsh"          TOKEN(token::BINOP);
 "load"         TOKEN(token::OP);
 "store"        TOKEN(token::BINOP);
+{DIGIT}        NUMBER(token::NUMBER);
+"!"            TOKEN(token::LNOT);
+"~"            TOKEN(token::BNOT);
+"*"            TOKEN(token::MULT);
+"/"            TOKEN(token::DIV);
+"+"            TOKEN(token::PLUS);
+"-"            TOKEN(token::MINUS);
+"^"            TOKEN(token::XOR);
+"&"            TOKEN(token::AND);
+"|"            TOKEN(token::OR);
 .              { }
