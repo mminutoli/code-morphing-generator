@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <sstream>
 
 
 using namespace IA;
@@ -342,4 +343,21 @@ AlternativesDriver::handleRandomArgs(std::string const & r)
   } else {
     return randoms[r];
   }
+}
+
+std::string *
+AlternativesDriver::handleGenTimeConstant(unsigned int c)
+{
+  static unsigned int idx = 0;
+
+  osBuildAlternatives
+      << "IntegerType * const" << idx << "type = IntegerType::get("
+      << "BB->getContext(), 32);\n"
+      << "ConstantInt * const" << idx << " = ConstantInt::get(const" << idx
+      << "type, " << c << ");\n"
+      << std::endl;
+
+  std::ostringstream name("const");
+  name << idx++;
+  return new std::string(name.str());
 }

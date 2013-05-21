@@ -48,6 +48,8 @@ class AlternativesDriver
 
   unsigned int handleRandomArgs(std::string const & r);
 
+  std::string * handleGenTimeConstant(unsigned int c);
+
  private:
   IA::AlternativesScanner * scanner;
   IA::AlternativesParser * parser;
