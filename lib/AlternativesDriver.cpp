@@ -351,13 +351,13 @@ AlternativesDriver::handleGenTimeConstant(unsigned int c)
   static unsigned int idx = 0;
 
   osBuildAlternatives
-      << "IntegerType * const" << idx << "type = IntegerType::get("
+      << "IntegerType * constE" << idx << "type = IntegerType::get("
       << "BB->getContext(), 32);\n"
-      << "ConstantInt * const" << idx << " = ConstantInt::get(const" << idx
+      << "ConstantInt * constE" << idx << " = ConstantInt::get(constE" << idx
       << "type, " << c << ");\n"
       << std::endl;
 
-  std::ostringstream name("const");
-  name << idx++;
+  std::ostringstream name;
+  name << "constE" << idx++;
   return new std::string(name.str());
 }
