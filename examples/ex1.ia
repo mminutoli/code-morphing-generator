@@ -1,0 +1,22 @@
+r1 = xor r2 r3 {
+   [r1 = or r2 r3
+    r4 = and r2 r3
+    r5 = not r4
+    r6 = and r5 r1]
+   [r4 = not r3
+    r5 = and r2 r4
+    r6 = not r2
+    r7 = and r3 r6
+    r8 = or r5 r7]
+}
+
+r1 = and r2 r3 {
+   [r1 = and r3 r2]
+}
+
+r1 = xor r2 const0 {
+   [r1 = xor const0 r2]
+   [r1 = add r2 (rand0 - 123)
+    r3 = sub r1 (rand0 - 123)
+    r4 = xor r3 const0]
+}
