@@ -3,8 +3,9 @@
 %language "c++"
 %debug
 %defines
-%define namespace "IA"
-%define parser_class_name "AlternativesParser"
+%locations
+%define api.namespace { IA }
+%define parser_class_name { AlternativesParser }
 
 
 %code requires {
@@ -31,6 +32,7 @@ namespace IA {
 #include <AlternativesDriver.hpp>
 
 static int yylex(IA::AlternativesParser::semantic_type * yylval,
+                 IA::AlternativesParser::location_type *,
                  IA::AlternativesScanner & scanner,
                  IA::AlternativesDriver & driver);
 
@@ -147,6 +149,7 @@ void IA::AlternativesParser::error(const IA::AlternativesParser::location_type &
 
 #include <AlternativesScanner.hpp>
 static int yylex(IA::AlternativesParser::semantic_type * yylval,
+                 IA::AlternativesParser::location_type *,
                  IA::AlternativesScanner & scanner,
                  IA::AlternativesDriver & driver)
 {
